@@ -36,7 +36,18 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define SERVO_ID     1      // ID del servo (por defecto 1)
+#define SERVO_ID1    1      // ID del servo 1
+#define SERVO_ID2    2      // ID del servo 2
+
+// Para cambiar el ID de un servo: pongo en 1, conecto SOLO ese servo, carga y programo
+// Despues vuelve a ponerlo en 0.
+#define CAMBIAR_ID   0
+#define ID_ACTUAL    1      // ID que tiene ahora (los nuevos vienen con 1)
+#define ID_NUEVO     2      // ID que quieres asignarle
+
+
+
+
 #define SERVO_SPEED  1000   // pasos/s (0-3400 en STS3215)
 #define SERVO_ACC    50     // 0-254
 
@@ -101,32 +112,32 @@ int main(void)
   MX_USART1_UART_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
-  char msg[64];
-  int servo_id = SERVO_ID;
+  int servo_id1 = SERVO_ID1;
+  int servo_id2 = SERVO_ID2;
 
   uartx_write_text(&huart2, "INICIANDO\r\n");
-  HAL_Delay(500);                       // dar tiempo a que el servo arranque
+  HAL_Delay(500);                       // dar tiempo a que los servos arranquen
 
-  if (!Ping(servo_id))
-  {
-    uartx_write_text(&huart2, "Sin respuesta en ID configurado, buscando...\r\n");
-    int found = findID();
-    if (found < 0)
-      uartx_write_text(&huart2, "No se encontro ningun servo. Revisa cableado/alimentacion\r\n");
-    else
-    {
-      servo_id = found;
-      sprintf(msg, "Servo encontrado, ID=%d\r\n", servo_id);
-      uartx_write_text(&huart2, msg);
-    }
-  }
-  else
-    uartx_write_text(&huart2, "Servo OK\r\n");
+#if CAMBIAR_ID
+  // Con SOLO un servo conectado (ID actual = ID_ACTUAL) le asigna ID_NUEVO
+  SetID(ID_ACTUAL, ID_NUEVO);
+  HAL_Delay(100);
+  uartx_write_text(&huart2, Ping(ID_NUEVO) ? "ID cambiado OK\r\n" : "No respondio con el ID nuevo\r\n");
+  while (1) {}
+#endif
 
-  Operation_mode(servo_id, 0);          // modo posicion
-  Operation_speed(servo_id, SERVO_SPEED);
-  Acceleration(servo_id, SERVO_ACC);
-  Torque_enable(servo_id, 1);
+  uartx_write_text(&huart2, Ping(servo_id1) ? "Servo 1 OK\r\n" : "Servo 1 SIN RESPUESTA\r\n");
+  uartx_write_text(&huart2, Ping(servo_id2) ? "Servo 2 OK\r\n" : "Servo 2 SIN RESPUESTA\r\n");
+
+  Operation_mode(servo_id1, 0);         // modo posicion
+  Operation_speed(servo_id1, SERVO_SPEED);
+  Acceleration(servo_id1, SERVO_ACC);
+  Torque_enable(servo_id1, 1);
+
+  Operation_mode(servo_id2, 0);
+  Operation_speed(servo_id2, SERVO_SPEED);
+  Acceleration(servo_id2, SERVO_ACC);
+  Torque_enable(servo_id2, 1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -134,9 +145,11 @@ int main(void)
   while (1)
   {
 //4095 son 360 grados
-    Target_location(servo_id, 1024);    // posicion 1 (~90 grados)
+    Target_location(servo_id1, 1024);
+    Target_location(servo_id2, 2024);
     HAL_Delay(1000);
-    Target_location(servo_id, 3072);    // posicion 2 (~270 grados)
+    Target_location(servo_id1, 3072);
+    Target_location(servo_id2, 10);
     HAL_Delay(1000);
 
     /* USER CODE END WHILE */

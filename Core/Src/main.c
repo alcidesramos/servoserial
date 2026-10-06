@@ -36,14 +36,16 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+
+//pones los servos que tengas
 #define SERVO_ID1    1      // ID del servo 1
 #define SERVO_ID2    2      // ID del servo 2
 
 // Para cambiar el ID de un servo: pongo en 1, conecto SOLO ese servo, carga y programo
 // Despues vuelve a ponerlo en 0.
-#define CAMBIAR_ID   0
-#define ID_ACTUAL    1      // ID que tiene ahora (los nuevos vienen con 1)
-#define ID_NUEVO     2      // ID que quieres asignarle
+#define CAMBIAR_ID   0  //pon esto en 1 cuando queira cambiar un servo
+#define ID_ACTUAL    1      // id actual del servo que quieres cambiar
+#define ID_NUEVO     2      // ID nuevo que le vas a poner
 
 
 
@@ -117,10 +119,10 @@ int main(void)
 
   uartx_write_text(&huart2, "INICIANDO\r\n");
   HAL_Delay(500);                       // dar tiempo a que los servos arranquen
-
+//analizo si queiro cambiar el id al servo
+//una vez cambies el ide debes poner  CAMBAIR_ID EN CERO PROGRAMAR DE NUEVO EL MICRO
 #if CAMBIAR_ID
-  // Con SOLO un servo conectado (ID actual = ID_ACTUAL) le asigna ID_NUEVO
-  SetID(ID_ACTUAL, ID_NUEVO);
+   SetID(ID_ACTUAL, ID_NUEVO);
   HAL_Delay(100);
   uartx_write_text(&huart2, Ping(ID_NUEVO) ? "ID cambiado OK\r\n" : "No respondio con el ID nuevo\r\n");
   while (1) {}
